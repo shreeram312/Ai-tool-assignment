@@ -29,9 +29,8 @@ export const uploadVideoUrl = async (req, res) => {
       transformationParams,
       processingStatus: "processing",
     });
-    console.log("Video saved to DB:", videosave);
+    // console.log("Video saver:", videosave);
 
-    // Respond immediately (don't wait for Fal AI)
     res.status(202).json({
       msg: "Video upload started, processing in background",
       video: videosave,
@@ -45,8 +44,7 @@ export const uploadVideoUrl = async (req, res) => {
           video_url: uploaded.secure_url,
         },
         logs: true,
-        webhookUrl:
-          "https://d164-103-171-133-249.ngrok-free.app/api/videos/webhook",
+        webhookUrl: `https://2929-103-171-133-249.ngrok-free.app/api/videos/webhook?videoId=${videosave._id}`,
       })
       .then((result) => console.log("Fal AI Result:", result))
       .catch((error) => console.error("Fal AI Error:", error));
@@ -58,7 +56,19 @@ export const uploadVideoUrl = async (req, res) => {
 
 export const webhookUrl = async (req, res) => {
   try {
+    const videoId = req.query.videoId;
     const { payload } = req.body;
+    console.log(payload);
+
+    const updatedVideo = await Video.findByIdAndUpdate(
+      videoId,
+      {
+        processedVideoUrl: payload.video.url,
+        processingStatus: "completed",
+        downloadedFileName: payload.video.file_name,
+      },
+      { new: true }
+    );
 
     return res.json({
       msg: "Webhook received and video status updated",
@@ -67,5 +77,29 @@ export const webhookUrl = async (req, res) => {
   } catch (e) {
     console.error("Error in webhookUrl:", e);
     return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const GetByIdPoll = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id);
+    const video = await Video.findById(id);
+    console.log(video);
+    if (!video) {
+      return res.json({
+        msg: "No video found yet",
+      });
+    }
+
+    console.log(video);
+    res.json({
+      processingStatus: video.processingStatus,
+      processedVideoUrl: video.processedVideoUrl,
+      downloadedFileName: video.downloadedFileName,
+    });
+  } catch (e) {
+    console.log(e);
+    throw new Error("Error from server,Please try Later");
   }
 };

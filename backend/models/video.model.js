@@ -8,12 +8,20 @@ const VideoSchema = new mongoose.Schema(
     sourceFileName: { type: String, required: true },
 
     transformationParams: { type: Object, required: true },
+    requestId: {
+      type: String,
+      default: null,
+    },
 
     processedVideoUrl: { type: String, default: null },
     processingStatus: {
       type: String,
       enum: ["pending", "processing", "completed", "failed"],
       default: "pending",
+    },
+    downloadedFileName: {
+      type: String,
+      default: null,
     },
   },
   { timestamps: true }
