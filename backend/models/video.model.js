@@ -15,10 +15,6 @@ const VideoSchema = new mongoose.Schema(
       enum: ["pending", "processing", "completed", "failed"],
       default: "pending",
     },
-
-    errorMessage: { type: String, default: null },
-
-    createdAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
