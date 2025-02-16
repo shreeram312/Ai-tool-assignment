@@ -2,9 +2,15 @@
 import { Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 
-export function VideoTransformPreview() {
+export function VideoTransformPreview({
+  videouploaded,
+  setvideouploaded,
+}: {
+  videouploaded: boolean;
+  setvideouploaded: React.Dispatch<SetStateAction<boolean>>;
+}) {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState("");
 
@@ -39,7 +45,6 @@ export function VideoTransformPreview() {
                 </div>
               )
             )}
-            <Button className="w-full">Start Transformation</Button>
           </div>
         )}
       </CardContent>

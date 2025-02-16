@@ -1,7 +1,7 @@
 "use client";
 import type React from "react";
-import { useState, useRef } from "react";
-import { Upload, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Upload } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -13,155 +13,176 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { cn } from "@/lib/utils";
 import { FileUploaderRegular } from "@uploadcare/react-uploader/next";
 import "@uploadcare/react-uploader/core.css";
 import toast from "react-hot-toast";
+import { Button } from "../button";
+import axiosInstance from "@/lib/axiosInstance";
 
-export function VideoTransformForm() {
+export function VideoTransformForm({
+  videouploaded,
+  setvideouploaded,
+}: {
+  videouploaded: boolean;
+  setvideouploaded: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  const [prompt, setPrompt] = useState("");
+  const [steps, setSteps] = useState(10);
+  const [seed, setSeed] = useState("");
+  const [aspectRatio, setAspectRatio] = useState("16:9");
+  const [resolution, setResolution] = useState("720p");
+  const [frames, setFrames] = useState<number | null>(85);
+  const [strength, setStrength] = useState(0.85);
+  const [cdnurl, setcdnurl] = useState("");
+  const [fileName, setfileName] = useState("");
+  useEffect(() => {
+    console.log("Video uploaded:", videouploaded);
+  }, [videouploaded]);
+
+  async function handleVideoTransform() {
+    try {
+      console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
+      const res = await axiosInstance.post(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/videos/upload`,
+        {
+          uploadCareUrl: cdnurl,
+          sourceFileName: fileName,
+          transformationParams: {
+            prompt: prompt,
+            steps: steps,
+            aspectRatio: aspectRatio,
+            resolution: resolution,
+            frames: frames,
+            seed: seed,
+            strength: strength,
+          },
+        }
+      );
+
+      console.log("the res is ......", res);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle>AI Video Transformation</CardTitle>
-      </CardHeader>
       <CardContent className="grid gap-6">
-        <div className="grid gap-2">
-          <Label>Input Video</Label>
-          {/* <div
-            className={cn(
-              "border-2 border-dashed rounded-lg transition-colors",
-              dragActive ? "border-primary bg-primary/10" : "border-muted",
-              videoFile && "border-success bg-success/10"
-            )}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-          >
-          
-            {videoFile ? (
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="font-medium">{videoFile.name}</div>
-                  <Button variant="ghost" size="icon" onClick={removeFile}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <video className="w-full rounded-lg">
-                  <source
-                    src={URL.createObjectURL(videoFile)}
-                    type={videoFile.type}
-                  />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
-            ) : (
-              
-            )}
-
-          </div> */}
-
-          <div className="p-6 flex flex-col items-center gap-2">
-            <Upload className="w-8 h-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground text-center">
+        <div className="p-6 flex flex-col items-center gap-2">
+          <Upload className="w-8 h-8 text-muted-foreground" />
+          <button disabled={!videouploaded}>
+            {videouploaded && <p className="text-black">Video Uploaded...</p>}
+            {!videouploaded && (
               <FileUploaderRegular
+                //@ts-ignore
+                multiple="false"
+                //@ts-ignore
+                checkForUrlDuplicates="1"
                 sourceList="local, facebook, gdrive"
                 cameraModes="video"
-                pubkey=""
-                onFileRemoved={() => {
-                  toast.error("File removed successfully");
+                pubkey="355b5773ace9cc492272"
+                onFileUploadFailed={(e) => {
+                  toast.error(e.errors[0].message);
                 }}
-                onFileAdded={(e) => {
-                  console.log(e);
+                onFileAdded={async (e) => {}}
+                onFileUploadSuccess={(e) => {
+                  // console.log(e.fileInfo.name);
+                  setfileName(e.fileInfo.name);
+                  toast.success(e.cdnUrl);
+                  setvideouploaded(true);
+                  setcdnurl(e.cdnUrl);
                 }}
-                img-only="false"
-                // onFileUploadSuccess={(e) => {
-                //   console.log(e);
-                // }}
+                store="auto"
               />
-            </p>
-          </div>
+            )}
+          </button>
         </div>
 
+        {videouploaded && <div>Video Uploaded now wait</div>}
         <div className="grid gap-2">
           <Label htmlFor="prompt">Prompt</Label>
           <Input
             id="prompt"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
             placeholder="Enter your transformation prompt..."
           />
         </div>
 
-        <div className="grid gap-2">
-          <Label htmlFor="steps">Inference Steps</Label>
-          <Slider
-            id="steps"
-            defaultValue={[30]}
-            max={100}
-            step={1}
-            className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4"
-          />
-          <p className="text-xs text-muted-foreground">
-            Lower gets faster results, higher gets better results
-          </p>
-        </div>
+        <Label htmlFor="steps">Inference Steps</Label>
+        <Slider
+          id="steps"
+          value={[steps]}
+          onValueChange={(value) => setSteps(value[0])}
+          max={30}
+          step={1}
+        />
+        <p>Selected Steps: {steps}</p>
 
-        <div className="grid gap-2">
-          <Label htmlFor="seed">Seed</Label>
-          <Input id="seed" type="number" placeholder="Enter seed number..." />
-        </div>
+        <Label htmlFor="seed">Seed</Label>
+        <Input
+          id="seed"
+          type="number"
+          value={seed}
+          onChange={(e) => setSeed(e.target.value)}
+          placeholder="Enter seed number..."
+        />
 
-        <div className="grid gap-2">
-          <Label htmlFor="aspect">Aspect Ratio</Label>
-          <Select defaultValue="16:9">
-            <SelectTrigger id="aspect">
-              <SelectValue placeholder="Select aspect ratio" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="16:9">16:9</SelectItem>
-              <SelectItem value="9:16">9:16</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Label htmlFor="aspect">Aspect Ratio</Label>
+        <Select value={aspectRatio} onValueChange={setAspectRatio}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select aspect ratio" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="16:9">16:9</SelectItem>
+            <SelectItem value="9:16">9:16</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <div className="grid gap-2">
-          <Label htmlFor="resolution">Resolution</Label>
-          <Select defaultValue="720p">
-            <SelectTrigger id="resolution">
-              <SelectValue placeholder="Select resolution" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="480p">480p</SelectItem>
-              <SelectItem value="580p">580p</SelectItem>
-              <SelectItem value="720p">720p</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Label htmlFor="resolution">Resolution</Label>
+        <Select value={resolution} onValueChange={setResolution}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select resolution" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="480p">480p</SelectItem>
+            <SelectItem value="720p">720p</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <div className="grid gap-2">
-          <Label htmlFor="frames">Number of Frames</Label>
-          <Select defaultValue="129">
-            <SelectTrigger id="frames">
-              <SelectValue placeholder="Select number of frames" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="129">129</SelectItem>
-              <SelectItem value="85">85</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Label htmlFor="frames">Number of Frames</Label>
+        <Select
+          value={frames?.toString()}
+          onValueChange={(value) => setFrames(Number(value))}
+          defaultValue="85"
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select number of frames" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="129">129</SelectItem>
+            <SelectItem value="85">85</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <div className="grid gap-2">
-          <Label htmlFor="strength">Strength</Label>
-          <Slider
-            id="strength"
-            defaultValue={[0.85]}
-            max={1}
-            step={0.01}
-            className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4"
-          />
-          <p className="text-xs text-muted-foreground">Default: 0.85</p>
-        </div>
+        <Label htmlFor="strength">Strength</Label>
+        <Slider
+          id="strength"
+          value={[strength]}
+          onValueChange={(value) => setStrength(value[0])}
+          max={1}
+          step={0.01}
+        />
+        <p>Selected Strength: {strength}</p>
       </CardContent>
+
+      <Button
+        onClick={handleVideoTransform}
+        disabled={!videouploaded}
+        className="flex justify-center items-center mx-auto mb-2"
+      >
+        Start Transformation
+      </Button>
     </Card>
   );
 }

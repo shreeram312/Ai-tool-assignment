@@ -29,25 +29,35 @@ export const uploadVideoUrl = async (req, res) => {
       transformationParams,
       processingStatus: "processing",
     });
-    // console.log("Video saver:", videosave);
+    console.log("Video saver:", videosave);
 
     res.status(202).json({
       msg: "Video upload started, processing in background",
       video: videosave,
     });
 
-    // Trigger Fal AI asynchronously
-    fal
-      .subscribe("fal-ai/hunyuan-video/video-to-video", {
-        input: {
-          prompt: videosave.transformationParams.prompt,
-          video_url: uploaded.secure_url,
-        },
-        logs: true,
-        webhookUrl: `https://2929-103-171-133-249.ngrok-free.app/api/videos/webhook?videoId=${videosave._id}`,
-      })
-      .then((result) => console.log("Fal AI Result:", result))
-      .catch((error) => console.error("Fal AI Error:", error));
+    const result = await fal.subscribe("fal-ai/hunyuan-video/video-to-video", {
+      input: {
+        prompt: videosave.transformationParams.prompt,
+        num_inference_steps: 30,
+        aspect_ratio: "16:9",
+        resolution: "720p",
+        num_frames: 129,
+        enable_safety_checker: true,
+        video_url: uploaded.secure_url,
+        strength: 0.85,
+      },
+      webhookUrl: `https://926b-103-171-133-249.ngrok-free.app/api/videos/webhook?videoId=${videosave._id}`,
+      logs: true,
+      onQueueUpdate: (update) => {
+        if (update.status === "IN_PROGRESS") {
+          update.logs?.forEach((log) => console.log(log.message));
+        }
+      },
+    });
+
+    console.log(result.data);
+    console.log(result.requestId);
   } catch (e) {
     console.error("Error in uploadVideoUrl:", e);
     res.status(500).json({ error: "Internal Server Error" });
@@ -58,7 +68,7 @@ export const webhookUrl = async (req, res) => {
   try {
     const videoId = req.query.videoId;
     const { payload } = req.body;
-    console.log(payload);
+    console.log("Payload is ", payload);
 
     const updatedVideo = await Video.findByIdAndUpdate(
       videoId,
