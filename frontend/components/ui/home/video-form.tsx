@@ -19,12 +19,44 @@ import toast from "react-hot-toast";
 import { Button } from "../button";
 import axiosInstance from "@/lib/axiosInstance";
 
+type VideoData = {
+  msg: string;
+  video: {
+    sourceVideoUrl: string;
+    sourceFileName: string;
+    transformationParams: {
+      prompt: string;
+      steps: number;
+      aspectRatio: string;
+      resolution: string;
+      frames: string;
+      seed: string;
+      strength: number;
+    };
+  };
+  requestId: string | null;
+  processedVideoUrl: string | null;
+  processingStatus: string;
+  downloadedFileName: string;
+  _id: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 export function VideoTransformForm({
   videouploaded,
   setvideouploaded,
+  videodata,
+  setvideodata,
+  videoId,
+  setvideoId,
 }: {
   videouploaded: boolean;
   setvideouploaded: React.Dispatch<React.SetStateAction<boolean>>;
+  videodata: VideoData[];
+  setvideodata: React.Dispatch<React.SetStateAction<VideoData[]>>;
+  videoId: string;
+  setvideoId: React.Dispatch<React.SetStateAction<string>>;
 }) {
   const [prompt, setPrompt] = useState("");
   const [steps, setSteps] = useState(10);
@@ -35,6 +67,7 @@ export function VideoTransformForm({
   const [strength, setStrength] = useState(0.85);
   const [cdnurl, setcdnurl] = useState("");
   const [fileName, setfileName] = useState("");
+
   useEffect(() => {
     console.log("Video uploaded:", videouploaded);
   }, [videouploaded]);
@@ -60,6 +93,9 @@ export function VideoTransformForm({
       );
 
       console.log("the res is ......", res);
+      toast.success("Video Uploaded, Converting in Backend,Please wait ");
+      setvideodata(res.data);
+      setvideoId(res.data._id);
     } catch (e) {
       console.log(e);
     }
@@ -69,6 +105,7 @@ export function VideoTransformForm({
     <Card className="w-full">
       <CardContent className="grid gap-6">
         <div className="p-6 flex flex-col items-center gap-2">
+          {videoId}
           <Upload className="w-8 h-8 text-muted-foreground" />
           <button disabled={!videouploaded}>
             {videouploaded && <p className="text-black">Video Uploaded...</p>}
@@ -129,7 +166,11 @@ export function VideoTransformForm({
         />
 
         <Label htmlFor="aspect">Aspect Ratio</Label>
-        <Select value={aspectRatio} onValueChange={setAspectRatio}>
+        <Select
+          defaultValue="16:9"
+          value={aspectRatio}
+          onValueChange={setAspectRatio}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select aspect ratio" />
           </SelectTrigger>
@@ -140,7 +181,11 @@ export function VideoTransformForm({
         </Select>
 
         <Label htmlFor="resolution">Resolution</Label>
-        <Select value={resolution} onValueChange={setResolution}>
+        <Select
+          defaultValue="720p"
+          value={resolution}
+          onValueChange={setResolution}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select resolution" />
           </SelectTrigger>
@@ -183,6 +228,8 @@ export function VideoTransformForm({
       >
         Start Transformation
       </Button>
+      {JSON.stringify(videodata)}
+      {videoId}
     </Card>
   );
 }

@@ -1,5 +1,5 @@
 import { v2 as cloudinary } from "cloudinary";
-import { Video } from "../models/Video.model.js";
+import { Video } from "../models/videomodel.js";
 import { fal } from "@fal-ai/client";
 
 cloudinary.config({
