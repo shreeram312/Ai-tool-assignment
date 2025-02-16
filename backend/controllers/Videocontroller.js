@@ -39,23 +39,22 @@ export const uploadVideoUrl = async (req, res) => {
     const result = await fal.subscribe("fal-ai/hunyuan-video/video-to-video", {
       input: {
         prompt: videosave.transformationParams.prompt,
-        num_inference_steps: transformationParams.steps,
-        aspect_ratio: transformationParams.aspectRatio,
-        resolution: transformationParams.resolution,
-        num_frames: transformationParams.frames,
+        num_inference_steps: videosave.transformationParams.steps,
+        aspect_ratio: videosave.transformationParams.aspectRatio,
+        resolution: videosave.transformationParams.resolution,
+        num_frames: videosave.transformationParams.frames,
         enable_safety_checker: true,
-        video_url: uploaded.secure_url,
-        strength: transformationParams.strength,
+        video_url: videosave.sourceVideoUrl,
+        strength: videosave.transformationParams.strength,
       },
-      webhookUrl: `${process.env.BACKEND_URL}/api/videos/webhook?videoId=${videosave._id}`,
       logs: true,
+      webhookUrl: `${process.env.BACKEND_URL}?videoId=${videosave._id}`,
       onQueueUpdate: (update) => {
         if (update.status === "IN_PROGRESS") {
-          update.logs?.forEach((log) => console.log(log.message));
+          update.logs.map((log) => log.message).forEach(console.log);
         }
       },
     });
-
     console.log(result.data);
     console.log(result.requestId);
   } catch (e) {
@@ -66,20 +65,23 @@ export const uploadVideoUrl = async (req, res) => {
 export const webhookUrl = async (req, res) => {
   try {
     const videoId = req.query.videoId;
+    // console.log("Webhook payload: ", req.body);
     const { payload } = req.body;
-    console.log("Payload is ", payload);
+    // console.log("Payload is ", payload);
 
-    const updatedVideo = await Video.findByIdAndUpdate(
-      videoId,
-      {
-        processedVideoUrl: payload.video.url,
-        processingStatus: "completed",
-        downloadedFileName: payload.video.file_name,
-      },
-      { new: true }
-    );
+    if (payload.video.url) {
+      const updatedVideo = await Video.findByIdAndUpdate(
+        videoId,
+        {
+          processedVideoUrl: payload.video.url,
+          processingStatus: "completed",
+          downloadedFileName: payload.video.file_name,
+        },
+        { new: true }
+      );
+    }
 
-    console.log("updatedVideo is      ................", updatedVideo);
+    // console.log("updatedVideo is  ", updatedVideo);
 
     return res.json({
       msg: "Webhook received and video status updated",
@@ -87,7 +89,7 @@ export const webhookUrl = async (req, res) => {
     });
   } catch (e) {
     console.error("Error in webhookUrl:", e);
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({ error: "Internal Server Error bubu" });
   }
 };
 
