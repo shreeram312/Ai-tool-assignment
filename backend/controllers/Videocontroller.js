@@ -47,7 +47,7 @@ export const uploadVideoUrl = async (req, res) => {
         video_url: uploaded.secure_url,
         strength: transformationParams.strength,
       },
-      webhookUrl: `https://926b-103-171-133-249.ngrok-free.app/api/videos/webhook?videoId=${videosave._id}`,
+      webhookUrl: `https://f00c-103-171-133-249.ngrok-free.app/api/videos/webhook?videoId=${videosave._id}`,
       logs: true,
       onQueueUpdate: (update) => {
         if (update.status === "IN_PROGRESS") {
@@ -60,7 +60,6 @@ export const uploadVideoUrl = async (req, res) => {
     console.log(result.requestId);
   } catch (e) {
     console.error("Error in uploadVideoUrl:", e);
-    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 

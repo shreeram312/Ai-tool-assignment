@@ -16,6 +16,8 @@ fal.config({
   credentials: process.env.FAL_KEY,
 });
 
+console.log(process.env.FAL_KEY);
+
 connectDB();
 app.all(falProxy.route, cors(), falProxy.handler);
 app.use("/api/videos", videoRoutes);
