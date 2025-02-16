@@ -39,13 +39,13 @@ export const uploadVideoUrl = async (req, res) => {
     const result = await fal.subscribe("fal-ai/hunyuan-video/video-to-video", {
       input: {
         prompt: videosave.transformationParams.prompt,
-        num_inference_steps: 30,
-        aspect_ratio: "16:9",
-        resolution: "720p",
-        num_frames: 129,
+        num_inference_steps: transformationParams.steps,
+        aspect_ratio: transformationParams.aspectRatio,
+        resolution: transformationParams.resolution,
+        num_frames: transformationParams.frames,
         enable_safety_checker: true,
         video_url: uploaded.secure_url,
-        strength: 0.85,
+        strength: transformationParams.strength,
       },
       webhookUrl: `https://926b-103-171-133-249.ngrok-free.app/api/videos/webhook?videoId=${videosave._id}`,
       logs: true,
@@ -79,6 +79,8 @@ export const webhookUrl = async (req, res) => {
       },
       { new: true }
     );
+
+    console.log("updatedVideo is      ................", updatedVideo);
 
     return res.json({
       msg: "Webhook received and video status updated",
