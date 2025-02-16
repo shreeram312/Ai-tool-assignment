@@ -47,7 +47,7 @@ export const uploadVideoUrl = async (req, res) => {
         video_url: uploaded.secure_url,
         strength: transformationParams.strength,
       },
-      webhookUrl: `https://f00c-103-171-133-249.ngrok-free.app/api/videos/webhook?videoId=${videosave._id}`,
+      webhookUrl: `${process.env.BACKEND_URL}/api/videos/webhook?videoId=${videosave._id}`,
       logs: true,
       onQueueUpdate: (update) => {
         if (update.status === "IN_PROGRESS") {
