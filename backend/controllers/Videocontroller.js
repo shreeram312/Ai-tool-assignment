@@ -105,7 +105,6 @@ export const GetByIdPoll = async (req, res) => {
       });
     }
 
-    console.log(video);
     res.json({
       processingStatus: video.processingStatus,
       processedVideoUrl: video.processedVideoUrl,
