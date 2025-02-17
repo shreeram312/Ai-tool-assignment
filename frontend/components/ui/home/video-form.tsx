@@ -2,7 +2,7 @@
 import type React from "react";
 import { useState, useEffect } from "react";
 import { Upload } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -50,6 +50,8 @@ export function VideoTransformForm({
   setvideodata,
   videoId,
   setvideoId,
+  loader,
+  setloader,
 }: {
   videouploaded: boolean;
   setvideouploaded: React.Dispatch<React.SetStateAction<boolean>>;
@@ -57,6 +59,8 @@ export function VideoTransformForm({
   setvideodata: React.Dispatch<React.SetStateAction<VideoData[]>>;
   videoId: string;
   setvideoId: React.Dispatch<React.SetStateAction<string>>;
+  loader: boolean;
+  setloader: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [prompt, setPrompt] = useState("");
   const [steps, setSteps] = useState(10);
@@ -95,7 +99,7 @@ export function VideoTransformForm({
       console.log("the res is ......", res);
       toast.success("Video Uploaded, Converting in Backend,Please wait ");
       setvideodata(res.data);
-      setvideoId(res.data._id);
+      setvideoId(res.data.video._id);
     } catch (e) {
       console.log(e);
     }
@@ -114,7 +118,7 @@ export function VideoTransformForm({
                 //@ts-ignore
                 multiple="false"
                 //@ts-ignore
-                checkForUrlDuplicates="1"
+
                 sourceList="local, facebook, gdrive"
                 cameraModes="video"
                 pubkey="355b5773ace9cc492272"
@@ -228,7 +232,7 @@ export function VideoTransformForm({
       >
         Start Transformation
       </Button>
-      {JSON.stringify(videodata)}
+
       {videoId}
     </Card>
   );
