@@ -8,6 +8,7 @@ const VideoComponent = () => {
   const [videodata, setvideodata] = useState<any[]>([]);
   const [videoId, setvideoId] = useState<string>("");
   const [loader, setloader] = useState(false);
+  const [videotransform, setvideotransfrom] = useState(false);
   return (
     <div className="sm:flex  gap-10">
       <VideoTransformForm
@@ -19,6 +20,8 @@ const VideoComponent = () => {
         setvideoId={setvideoId}
         loader={loader}
         setloader={setloader}
+        videotranform={videotransform}
+        setvideotransform={setvideotransfrom}
       />
       <div className="w-full my-2">
         <VideoTransformPreview
@@ -28,6 +31,8 @@ const VideoComponent = () => {
           setvideoId={setvideoId}
           loader={loader}
           setloader={setloader}
+          videotransform={videotransform}
+          setvideotransform={setvideotransfrom}
         />
       </div>
     </div>

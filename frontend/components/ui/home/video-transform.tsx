@@ -1,7 +1,7 @@
 "use client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SetStateAction, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "@/lib/axiosInstance";
 
@@ -12,6 +12,8 @@ export function VideoTransformPreview({
   setvideoId,
   loader,
   setloader,
+  videotransform,
+  setvideotransform,
 }: {
   videouploaded: boolean;
   setvideouploaded: React.Dispatch<SetStateAction<boolean>>;
@@ -19,10 +21,24 @@ export function VideoTransformPreview({
   setvideoId: React.Dispatch<React.SetStateAction<string>>;
   loader: boolean;
   setloader: React.Dispatch<React.SetStateAction<boolean>>;
+  videotransform: boolean;
+  setvideotransform: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [downloadedFileName, setDownloadedFileName] = useState("");
+  const [isPageVisible, setIsPageVisible] = useState(true);
 
-  const { data, isLoading } = useQuery({
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsPageVisible(document.visibilityState === "visible");
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ["video", videoId],
     queryFn: async () => {
       const response = await axiosInstance.get(
@@ -30,19 +46,35 @@ export function VideoTransformPreview({
       );
       return response.data;
     },
-    enabled: videouploaded,
-    refetchInterval: (queryData) =>
-      //@ts-ignore
-      queryData?.processingStatus === "processing" ? 7000 : false,
+    enabled: videotransform && isPageVisible,
+    refetchInterval: false,
   });
+
+  useEffect(() => {
+    if (videotransform && isPageVisible) {
+      const interval = setInterval(() => {
+        refetch();
+      }, 7000);
+
+      return () => clearInterval(interval);
+    }
+  }, [videotransform, isPageVisible, refetch]);
+
+  useEffect(() => {
+    if (data?.processingStatus === "completed") {
+      setvideotransform(false);
+      setloader(false);
+    }
+  }, [data, setvideotransform, setloader]);
 
   return (
     <Card className="w-full">
       <CardContent className="min-h-[300px] flex flex-col items-center justify-center text-center p-6">
-        {videoId}
-        {isLoading ? (
-          <p>Loading...</p>
-        ) : data && data.processingStatus === "completed" ? (
+        {videotransform && isPageVisible && (
+          <div className="loader">Loading...</div>
+        )}
+
+        {data?.processingStatus === "completed" ? (
           <div className="flex flex-col items-center">
             <video
               src={data.processedVideoUrl}
@@ -58,9 +90,9 @@ export function VideoTransformPreview({
               </a>
             </Button>
           </div>
-        ) : (
+        ) : !videotransform && !data ? (
           <p>No video available</p>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );

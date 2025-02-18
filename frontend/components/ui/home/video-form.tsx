@@ -18,6 +18,7 @@ import "@uploadcare/react-uploader/core.css";
 import toast from "react-hot-toast";
 import { Button } from "../button";
 import axiosInstance from "@/lib/axiosInstance";
+import { tree } from "next/dist/build/templates/app-page";
 
 type VideoData = {
   msg: string;
@@ -52,6 +53,8 @@ export function VideoTransformForm({
   setvideoId,
   loader,
   setloader,
+  videotranform,
+  setvideotransform,
 }: {
   videouploaded: boolean;
   setvideouploaded: React.Dispatch<React.SetStateAction<boolean>>;
@@ -61,6 +64,8 @@ export function VideoTransformForm({
   setvideoId: React.Dispatch<React.SetStateAction<string>>;
   loader: boolean;
   setloader: React.Dispatch<React.SetStateAction<boolean>>;
+  videotranform: boolean;
+  setvideotransform: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [prompt, setPrompt] = useState("");
   const [steps, setSteps] = useState(10);
@@ -96,6 +101,7 @@ export function VideoTransformForm({
         }
       );
 
+      setvideotransform(true);
       console.log("the res is ......", res);
       toast.success("Video Uploaded, Converting in Backend,Please wait ");
       setvideodata(res.data);
@@ -109,7 +115,6 @@ export function VideoTransformForm({
     <Card className="w-full">
       <CardContent className="grid gap-6">
         <div className="p-6 flex flex-col items-center gap-2">
-          {videoId}
           <Upload className="w-8 h-8 text-muted-foreground" />
           <button disabled={!videouploaded}>
             {videouploaded && <p className="text-black">Video Uploaded...</p>}
@@ -227,13 +232,11 @@ export function VideoTransformForm({
 
       <Button
         onClick={handleVideoTransform}
-        disabled={!videouploaded}
+        disabled={!videouploaded || videotranform}
         className="flex justify-center items-center mx-auto mb-2"
       >
         Start Transformation
       </Button>
-
-      {videoId}
     </Card>
   );
 }
